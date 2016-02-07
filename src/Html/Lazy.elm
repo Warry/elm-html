@@ -11,7 +11,7 @@ If so, it skips calling the function!
 This is a really cheap test and often makes things a lot faster, but definitely
 benchmark to be sure!
 
-@docs lazy, lazy2, lazy3
+@docs lazy, lazy2
 -}
 
 import Html exposing (Html)
@@ -26,20 +26,13 @@ can check to see if `model` is referentially equal to the previous value used,
 and if so, we just stop. No need to build up the tree structure and diff it,
 we know if the input to `view` is the same, the output must be the same!
 -}
-lazy : (a -> Html) -> a -> Html
+lazy : (a -> Html msg) -> a -> Html msg
 lazy =
-  VirtualDom.lazy
+  VirtualDom.lazy2
 
 
 {-| Same as `lazy` but checks on two arguments.
 -}
-lazy2 : (a -> b -> Html) -> a -> b -> Html
+lazy2 : (a -> b -> Html msg) -> a -> b -> Html msg
 lazy2 =
-  VirtualDom.lazy2
-
-
-{-| Same as `lazy` but checks on three arguments.
--}
-lazy3 : (a -> b -> c -> Html) -> a -> b -> c -> Html
-lazy3 =
   VirtualDom.lazy3

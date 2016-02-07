@@ -4,11 +4,12 @@ import Html exposing (Html, Attribute, text, div, input)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, targetValue)
 import String
+import VirtualDom
 
 
 -- VIEW
 
-view : String -> Html
+view : String -> Html String
 view string =
   div []
     [ stringInput string
@@ -16,23 +17,23 @@ view string =
     ]
 
 
-reversedString : String -> Html
+reversedString : String -> Html String
 reversedString string =
   div [ myStyle ] [ text (String.reverse string) ]
 
 
-stringInput : String -> Html
+stringInput : String -> Html String
 stringInput string =
   input
     [ placeholder "Text to reverse"
     , value string
-    , on "input" targetValue (Signal.message actions.address)
+    , on "input" targetValue
     , myStyle
     ]
     []
 
 
-myStyle : Attribute
+myStyle : Attribute a
 myStyle =
   style
     [ ("width", "100%")
@@ -45,10 +46,12 @@ myStyle =
 
 -- SIGNALS
 
-main : Signal Html
-main =
-  Signal.map view actions.signal
-
 actions : Signal.Mailbox String
 actions =
   Signal.mailbox ""
+
+main : Signal VirtualDom.Node
+main =
+  Signal.map (\m ->
+    view m actions.address
+  ) actions.signal

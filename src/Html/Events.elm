@@ -42,9 +42,9 @@ import VirtualDom
 
     import Json.Decode as Json
 
-    onClick : Signal.Address a -> Attribute
+    onClick : a -> Event a
     onClick address =
-        on "click" Json.value (\_ -> Signal.message address ())
+        on "click"
 
 You first specify the name of the event in the same format as with
 JavaScript’s `addEventListener`. Next you give a JSON decoder, which lets
@@ -52,16 +52,23 @@ you pull information out of the event object. If that decoder is successful,
 the resulting value is given to a function that creates a `Signal.Message`.
 So in our example, we will send `()` to the given `address`.
 -}
-on : String -> Json.Decoder a -> (a -> Signal.Message) -> Attribute
-on =
+on : String -> Json.Decoder a -> Attribute a
+on name decoder addr =
   VirtualDom.on
+    name
+    decoder
+    (\msg -> Signal.message addr msg)
 
 
 {-| Same as `on` but you can set a few options.
 -}
-onWithOptions : String -> Options -> Json.Decoder a -> (a -> Signal.Message) -> Attribute
-onWithOptions =
+onWithOptions : String -> Options -> Json.Decoder a -> Attribute a
+onWithOptions name opts decoder addr =
   VirtualDom.onWithOptions
+    name
+    opts
+    decoder
+    (\msg -> Signal.message addr msg)
 
 
 {-| Options for an event listener. If `stopPropagation` is true, it means the
@@ -93,7 +100,7 @@ defaultOptions =
 {-| A `Json.Decoder` for grabbing `event.target.value` from the triggered
 event. This is often useful for input event on text fields.
 
-    onInput : Signal.Address a -> (String -> a) -> Attribute
+    onInput : Signal.Address a -> (String -> a) -> Attribute a
     onInput address contentToValue =
         on "input" targetValue (\str -> Signal.message address (contentToValue str))
 -}
@@ -105,7 +112,7 @@ targetValue =
 {-| A `Json.Decoder` for grabbing `event.target.checked` from the triggered
 event. This is useful for input event on checkboxes.
 
-    onInput : Signal.Address a -> (Bool -> a) -> Attribute
+    onInput : Signal.Address a -> (Bool -> a) -> Attribute a
     onInput address contentToValue =
         on "input" targetChecked (\bool -> Signal.message address (contentToValue bool))
 -}
@@ -118,7 +125,7 @@ targetChecked =
 This is useful for key events today, though it looks like the spec is moving
 towards the `event.key` field for this someday.
 
-    onKeyUp : Signal.Address a -> (Int -> a) -> Attribute
+    onKeyUp : Signal.Address a -> (Int -> a) -> Attribute a
     onKeyUp address handler =
         on "keyup" keyCode (\code -> Signal.message address (handler code))
 -}
@@ -129,87 +136,86 @@ keyCode =
 
 -- MouseEvent
 
-messageOn : String -> Signal.Address a -> a -> Attribute
-messageOn name addr msg =
-  on name value (\_ -> Signal.message addr msg)
+messageOn : String -> a -> Attribute a
+messageOn name value =
+  on name (Json.succeed value)
 
 
 {-|-}
-onClick : Signal.Address a -> a -> Attribute
+onClick : a -> Attribute a
 onClick =
   messageOn "click"
 
 
 {-|-}
-onDoubleClick : Signal.Address a -> a -> Attribute
+onDoubleClick : a -> Attribute a
 onDoubleClick =
   messageOn "dblclick"
 
 
 {-|-}
-onMouseMove : Signal.Address a -> a -> Attribute
+onMouseMove : a -> Attribute a
 onMouseMove =
   messageOn "mousemove"
 
 
 {-|-}
-onMouseDown : Signal.Address a -> a -> Attribute
+onMouseDown : a -> Attribute a
 onMouseDown =
   messageOn "mousedown"
 
 
 {-|-}
-onMouseUp : Signal.Address a -> a -> Attribute
+onMouseUp : a -> Attribute a
 onMouseUp =
   messageOn "mouseup"
 
 
 {-|-}
-onMouseEnter : Signal.Address a -> a -> Attribute
+onMouseEnter : a -> Attribute a
 onMouseEnter =
   messageOn "mouseenter"
 
 
 {-|-}
-onMouseLeave : Signal.Address a -> a -> Attribute
+onMouseLeave : a -> Attribute a
 onMouseLeave =
   messageOn "mouseleave"
 
 
 {-|-}
-onMouseOver : Signal.Address a -> a -> Attribute
+onMouseOver : a -> Attribute a
 onMouseOver =
   messageOn "mouseover"
 
 
 {-|-}
-onMouseOut : Signal.Address a -> a -> Attribute
+onMouseOut : a -> Attribute a
 onMouseOut =
   messageOn "mouseout"
 
 
-
 -- KeyboardEvent
 
-onKey : String -> Signal.Address a -> (Int -> a) -> Attribute
-onKey name addr handler =
-  on name keyCode (\code -> Signal.message addr (handler code))
+onKey : String -> (Int -> a) -> Attribute a
+onKey name handler =
+  on name (Json.map handler keyCode)
 
 
 {-|-}
-onKeyUp : Signal.Address a -> (Int -> a) -> Attribute
+onKeyUp : (Int -> a) -> Attribute a
 onKeyUp =
   onKey "keyup"
 
 
 {-|-}
-onKeyDown : Signal.Address a -> (Int -> a) -> Attribute
+onKeyDown : (Int -> a) -> Attribute a
 onKeyDown =
   onKey "keydown"
 
 
 {-|-}
-onKeyPress : Signal.Address a -> (Int -> a) -> Attribute
+onKeyPress : (Int -> a) -> Attribute a
 onKeyPress =
   onKey "keypress"
 
@@ -217,13 +223,13 @@ onKeyPress =
 -- Simple Events
 
 {-|-}
-onBlur : Signal.Address a -> a -> Attribute
+onBlur : a -> Attribute a
 onBlur =
   messageOn "blur"
 
 
 {-|-}
-onFocus : Signal.Address a -> a -> Attribute
+onFocus : a -> Attribute a
 onFocus =
   messageOn "focus"
 
@@ -234,15 +240,14 @@ in order to prevent the form from changing the page’s location. If you need
 different behavior, use `onWithOptions` to create a customized version of
 `onSubmit`.
 -}
-onSubmit : Signal.Address a -> a -> Attribute
-onSubmit addr msg =
+onSubmit : Decoder a -> Attribute a
+onSubmit decoder =
   onWithOptions
     "submit"
     onSubmitOptions
-    value
-    (\_ -> Signal.message addr msg)
+    decoder
 
 
 onSubmitOptions : Options
 onSubmitOptions =
-  { defaultOptions | preventDefault <- True }
+  { defaultOptions | preventDefault = True }
