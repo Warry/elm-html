@@ -3,7 +3,6 @@ module ComplexDemo where
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Lazy exposing (..)
 import VirtualDom
 
 {-|-}
@@ -32,7 +31,7 @@ view : Model -> Html Action
 view (left, right) addr = addr |> -- Extract the address from the Html msg
   div []
     [ Left  $ viewItem left addr
-    , Right $ lazy2 viewItem right addr
+    , Right $ viewItem right addr
     ]
 
 
@@ -90,5 +89,5 @@ model =
 main : Signal VirtualDom.Node
 main =
   Signal.map (\m ->
-    lazy view m actions.address
+    view m actions.address
   ) model

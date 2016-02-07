@@ -12,6 +12,7 @@
         "Html.Events",
         "Html.Lazy"
     ],
+    "native-modules": true,
     "dependencies": {
         "elm-lang/core": "2.0.0 <= v < 4.0.0",
         "evancz/virtual-dom": "2.0.0 <= v < 3.0.0"

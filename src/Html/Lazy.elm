@@ -1,4 +1,5 @@
 module Html.Lazy where
+
 {-| Since all Elm functions are pure we have a guarantee that the same input
 will always result in the same output. This module gives us tools to be lazy
 about building `Html` that utilize this fact.
@@ -16,6 +17,7 @@ benchmark to be sure!
 
 import Html exposing (Html)
 import VirtualDom
+import Native.Lazy
 
 
 {-| A performance optimization that delays the building of virtual DOM nodes.
@@ -26,13 +28,19 @@ can check to see if `model` is referentially equal to the previous value used,
 and if so, we just stop. No need to build up the tree structure and diff it,
 we know if the input to `view` is the same, the output must be the same!
 -}
-lazy : (a -> Html msg) -> a -> Html msg
+lazy : (a -> Signal.Address msg -> VirtualDom.Node) -> a -> Signal.Address msg -> VirtualDom.Node
 lazy =
-  VirtualDom.lazy2
+  Native.Lazy.lazy
 
 
 {-| Same as `lazy` but checks on two arguments.
 -}
 lazy2 : (a -> b -> Html msg) -> a -> b -> Html msg
 lazy2 =
-  VirtualDom.lazy3
+  Native.Lazy.lazy2
+
+{-| Same as `lazy` but checks on three arguments.
+-}
+lazy3 : (a -> b -> c -> Html msg) -> a -> b -> c -> Html msg
+lazy3 =
+  Native.Lazy.lazy3

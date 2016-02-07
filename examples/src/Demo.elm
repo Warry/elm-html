@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import VirtualDom
+import Html.Lazy exposing (..)
 
 ($) = Html.map
 
@@ -26,8 +27,8 @@ initialModel = (0, 0)
 view : Model -> Html Action
 view (left, right) =
   div []
-    [ Left  $ viewItem left
-    , Right $ viewItem right
+    [ Left  $ lazy viewItem left
+    , Right $ lazy viewItem right
     ]
 
 
